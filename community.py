@@ -49,6 +49,25 @@ pointscore= Points('_data/points.db')
 
 welcomelock = threading.Lock()
 
+BinanceCN = -1001136071376
+#BNB48 Test = -1001395548149
+
+INVITINGS = {}
+def loadJson(filename,default=[]):
+    try:
+        file=open(filename,"r")
+        lastData = json.load(file)
+        file.close()
+        return lastData
+    except:
+        return default
+
+def saveJson(filename,content):
+    file = codecs.open(filename,"w","utf-8")
+    file.write(json.dumps(content))
+    file.flush()
+    file.close()
+
 def loadConfig(globalconfig,first=True):
     globalconfig.read(sys.argv[1])
 
@@ -539,7 +558,7 @@ def forwardHandler(bot,update):
                 )
             else:
                 update.message.reply_text("‼️ Be careful, this guy is not an admin",reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('Report!',callback_data="reportInAllGroups({},'{}')".format(fwduser.id,fwduser.full_name))]]))
-    
+
 def textInGroupHandler(bot,update):
     enabled=[]
     for each in globalconfig.items("activity"):
@@ -587,6 +606,11 @@ def punishHandler(bot,update):
     if not update.message.reply_to_message is None:
         pointscore.clearUser(update.message.reply_to_message.from_user.id,update.message.chat_id)
         update.message.reply_markdown("{} 💎0".format(update.message.reply_to_message.from_user.mention_markdown()))
+        if update.message.chat_id == BinanceCN:
+            INVITINGS = loadJson("_data/invitings.json",{})
+            if str(update.message.reply_to_message.from_user.id) in INVITINGS:
+                pointscore.changeBalance(INVITINGS[str(update.message.reply_to_message.from_user.id)],None,BinanceCN,-1)
+
     
 def clearpointsHandler(bot,update):
     if not isAdmin(update,False,True,True):
@@ -629,23 +653,14 @@ def rankHandler(bot,update):
     tuple=pointscore.getRank(update.message.chat_id,rank)
     res = "\n💎{}\t[{}](tg://user?id={})".format(tuple[3],tuple[1],tuple[0])
     update.message.reply_markdown(res,quote=True)
+
 def welcome(bot, update):
     global welcomelock
     global GROUPS
     
-    try:
-        file=open("_data/blacklist_names.json","r")
-        SPAMWORDS=json.load(file)["words"]
-        file.close()
-    except IOError:
-        SPAMWORDS=[]
-
-    try:
-        file=open("_data/blacklist_ids.json","r")
-        BLACKLIST=json.load(file)["ids"]
-        file.close()
-    except IOError:
-        BLACKLIST=[]
+    SPAMWORDS = loadJson("_data/blacklist_names.json")
+    BLACKLIST = loadJson("_data/blacklist_ids.json")
+    INVITINGS = loadJson("_data/invitings.json",{})
 
     for newUser in update.message.new_chat_members:
         if newUser.id in BLACKLIST:
@@ -657,7 +672,12 @@ def welcome(bot, update):
                 banInAllGroups(newUser.id,True)
                 logger.warning('%s|%s is banned from all groups because of spam',newUser.id,newUser.full_name)
                 return
+        if  update.message.chat_id == BinanceCN and update.message.from_user.id != newUser.id and not newUser.is_bot and not str(newUser.id) in INVITINGS:
+            pointscore.changeBalance(update.message.from_user.id,update.message.from_user.full_name,BinanceCN,1)
+            INVITINGS[str(newUser.id)] = update.message.from_user.id
+            update.message.reply_text("{}邀请新用户{} ，挖到1积分".format(update.message.from_user.full_name,newUser.full_name))
 
+    saveJson("_data/invitings.json",INVITINGS)
 
     groupid = update.message.chat_id
     if groupid in GROUPS and "puzzles" in GROUPS[groupid]:
