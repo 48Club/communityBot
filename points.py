@@ -71,7 +71,8 @@ class Points:
         logger.warning("%s mined one from %s",uid,groupid)
         balance = self.getBalance(uid,groupid)
         res = balance+number
-        assert res >= 0
+        if res < 0:
+            return
         createsql = "INSERT OR IGNORE INTO points (uid,name,groupid,balance) VALUES (?,?,?,0)"
         self._mycursor.execute(createsql,(uid,name,groupid))
         self._mydb.commit()

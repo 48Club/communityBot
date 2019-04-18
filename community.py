@@ -654,8 +654,12 @@ def rankHandler(bot,update):
     res = "\n💎{}\t[{}](tg://user?id={})".format(tuple[3],tuple[1],tuple[0])
     update.message.reply_markdown(res,quote=True)
 
+def onleft(bot,update):
+    if update.message.chat_id == BinanceCN:
+        INVITINGS = loadJson("_data/invitings.json",{})
+        if str(update.message.left_chat_member.id) in INVITINGS:
+            pointscore.changeBalance(INVITINGS[str(update.message.left_chat_member.id)],None,BinanceCN,-1)
 def welcome(bot, update):
-    global welcomelock
     global GROUPS
     
     SPAMWORDS = loadJson("_data/blacklist_names.json")
@@ -695,14 +699,11 @@ def welcome(bot, update):
                 #pass
                 logger.warning("send to %s(%s) failure",newUser.full_name,newUser.id)
                 try:
-                    welcomelock.acquire()
                     if GROUPS[groupid]['lasthintid'] != 0:
                         bot.deleteMessage(groupid,GROUPS[groupid]['lasthintid'])
                     GROUPS[groupid]['lasthintid'] = update.message.reply_text((GROUPS[groupid]['grouphint']+": {}").format(botname),quote=True).message_id
                 except:
                     logger.warning("send and delete new hint exception")
-                finally:
-                    welcomelock.release()
             finally:
                 restrict(update.message.chat_id,newUser.id,0.4)
                 probation = GROUPS[groupid]['probation']
@@ -767,7 +768,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.forwarded, forwardHandler))#'''处理转发消息'''
     dp.add_handler(MessageHandler(Filters.group&Filters.text, textInGroupHandler))#'''处理群消息'''
     dp.add_handler(MessageHandler(Filters.private&Filters.text, startHandler))#所有private消息当作start处理
-    #dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, onleft))#'''处理成员离开'''
+    dp.add_handler(MessageHandler(Filters.status_update.left_chat_member, onleft))#'''处理成员离开'''
     dp.add_handler(MessageHandler(documentFilter(),fileHandler))#'''处理文件
 
     # log all errors
