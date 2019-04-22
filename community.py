@@ -689,7 +689,7 @@ def welcome(bot, update):
                 INVITERS.append(str(update.message.from_user.id))
                 saveJson("_data/inviters.json",INVITERS)
                 update.message.reply_text("首次邀请新用户获得幸运抽奖机会，正在抽奖……",quote=False)
-                if random.random() > 0.3:
+                if random.random() < 0.2:
                     pointscore.changeBalance(update.message.from_user.id,update.message.from_user.full_name,BinanceCN,1)
                     update.message.reply_markdown("{} 抽中幸运奖 请妥善保存本条消息作为领奖凭据 @arron1234".format(update.message.from_user.mention_markdown()),quote=False)
                 else:
