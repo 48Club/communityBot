@@ -53,6 +53,7 @@ BinanceCN = -1001136071376
 #BNB48 Test = -1001395548149
 
 INVITINGS = {}
+INVITERS = []
 def loadJson(filename,default=[]):
     try:
         file=open(filename,"r")
@@ -659,12 +660,15 @@ def onleft(bot,update):
         INVITINGS = loadJson("_data/invitings.json",{})
         if str(update.message.left_chat_member.id) in INVITINGS:
             pointscore.changeBalance(INVITINGS[str(update.message.left_chat_member.id)],None,BinanceCN,-1)
+
 def welcome(bot, update):
     global GROUPS
     
     SPAMWORDS = loadJson("_data/blacklist_names.json")
     BLACKLIST = loadJson("_data/blacklist_ids.json")
     INVITINGS = loadJson("_data/invitings.json",{})
+    INVITERS = loadJson("_data/inviters.json",[])
+    
 
     for newUser in update.message.new_chat_members:
         if newUser.id in BLACKLIST:
@@ -679,9 +683,17 @@ def welcome(bot, update):
         if  update.message.chat_id == BinanceCN and update.message.from_user.id != newUser.id and not newUser.is_bot and not str(newUser.id) in INVITINGS:
             pointscore.changeBalance(update.message.from_user.id,update.message.from_user.full_name,BinanceCN,1)
             INVITINGS[str(newUser.id)] = update.message.from_user.id
+            saveJson("_data/invitings.json",INVITINGS)
             update.message.reply_text("{}邀请新用户{} ，挖到1积分".format(update.message.from_user.full_name,newUser.full_name))
-
-    saveJson("_data/invitings.json",INVITINGS)
+            if not str(update.message.from_user.id) in INVITERS:
+                INVITERS.append(str(update.message.from_user.id))
+                saveJson("_data/inviters.json",INVITERS)
+                update.message.reply_text("首次邀请新用户获得幸运抽奖机会，正在抽奖……",quote=False)
+                if random.random() > 0.3:
+                    pointscore.changeBalance(update.message.from_user.id,update.message.from_user.full_name,BinanceCN,1)
+                    update.message.reply_markdown("{} 抽中幸运奖 请妥善保存本条消息作为领奖凭据 @arron1234".format(update.message.from_user.mention_markdown()),quote=False)
+                else:
+                    update.message.reply_text("未抽中幸运奖",quote=False)
 
     groupid = update.message.chat_id
     if groupid in GROUPS and "puzzles" in GROUPS[groupid]:
