@@ -691,7 +691,7 @@ def welcome(bot, update):
                 update.message.reply_text("首次邀请新用户获得幸运抽奖机会，正在抽奖……",quote=False)
                 if random.random() < 0.2:
                     pointscore.changeBalance(update.message.from_user.id,update.message.from_user.full_name,BinanceCN,1)
-                    update.message.reply_markdown("{} 抽中幸运奖 请妥善保存本条消息作为领奖凭据 @arron1234".format(update.message.from_user.mention_markdown()),quote=False)
+                    update.message.reply_markdown("{} 抽中幸运奖 请妥善保存本条消息作为领奖凭据。\n\n凭本条消息找到群内管理员/币安天使提交收货地址。\n\n管理员/天使绝对不会首先私聊你，谨防骗子".format(update.message.from_user.mention_markdown()),quote=False)
                 else:
                     update.message.reply_text("未抽中幸运奖",quote=False)
 
