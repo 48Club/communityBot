@@ -660,6 +660,16 @@ def onleft(bot,update):
         INVITINGS = loadJson("_data/invitings.json",{})
         if str(update.message.left_chat_member.id) in INVITINGS:
             pointscore.changeBalance(INVITINGS[str(update.message.left_chat_member.id)],None,BinanceCN,-1)
+def addHandler(bot,update):
+    if not isAdmin(update,False,True,True):
+        returnthings = update.message.text.split(" ")
+    things = update.message.text.split(" ")
+    if len(things) != 3:
+        return
+    uid = int(things[1])
+    amount = int(things[2])
+    pointscore.changeBalance(uid,None,BinanceCN,amount)
+    update.message.reply_text("Done")
 
 def welcome(bot, update):
     global GROUPS
@@ -752,6 +762,7 @@ def main():
     # on different commands - answer in Telegram
 
     dp.add_handler(CommandHandler( [ "points" ], pointsHandler))
+    dp.add_handler(CommandHandler( [ "add" ], addHandler))
     dp.add_handler(CommandHandler( [ "rank" ], rankHandler))
     dp.add_handler(CommandHandler( [ "top" ], topHandler))
     dp.add_handler(CommandHandler( [ "above" ], aboveHandler))
