@@ -722,7 +722,10 @@ def welcome(bot, update):
                 logger.warning("send to %s(%s) failure",newUser.full_name,newUser.id)
                 try:
                     if GROUPS[groupid]['lasthintid'] != 0:
-                        bot.deleteMessage(groupid,GROUPS[groupid]['lasthintid'])
+                        try:
+                            bot.deleteMessage(groupid,GROUPS[groupid]['lasthintid'])
+                        except:
+                            pass
                     GROUPS[groupid]['lasthintid'] = update.message.reply_text((GROUPS[groupid]['grouphint']+": {}").format(botname),quote=True).message_id
                 except:
                     logger.warning("send and delete new hint exception")
