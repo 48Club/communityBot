@@ -144,22 +144,33 @@ def refreshAdmins(bot,job):
 
 def reportInAllGroups(userid,fullname):
     global DATAADMINS
+    try:
+        file=open("_data/blacklist_ids.json","r")
+        BLACKLIST=json.load(file)["ids"]
+        file.close()
+    except IOError:
+        BLACKLIST=[]
+    if userid in BLACKLIST:
+        finalmarkup=InlineKeyboardMarkup(
+            [InlineKeyboardButton(
+                'Unban',
+                callback_data="banInAllGroups({},False)".format(userid))
+            ]
+        )
+    else:
+        finalmarkup=InlineKeyboardMarkup(
+            [InlineKeyboardButton(
+                'Ban',
+                callback_data="banInAllGroups({},True)".format(userid))
+            ]
+        )
+        
+
     for adminid in DATAADMINS:
         updater.bot.sendMessage(
             adminid,
             "Someone reported [{}](tg://user?id={})".format(fullname,userid),
-            reply_markup=InlineKeyboardMarkup(
-                [
-                    [InlineKeyboardButton(
-                        'Ban',
-                        callback_data="banInAllGroups({},True)".format(userid))
-                    ],
-                    [InlineKeyboardButton(
-                        'unban',
-                        callback_data="banInAllGroups({},False)".format(userid))
-                    ]
-                ]
-            ),
+            reply_markup=finalmarkup,
             parse_mode=ParseMode.MARKDOWN
         )
 
