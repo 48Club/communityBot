@@ -49,7 +49,8 @@ pointscore= Points('_data/points.db')
 
 welcomelock = threading.Lock()
 
-BinanceCN = -1001136071376
+BinanceCN = -1
+#-1001136071376
 #BNB48 Test = -1001395548149
 
 INVITINGS = {}
