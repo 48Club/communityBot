@@ -39,6 +39,7 @@ botname = globalconfig.get("bot","name")
 updater = Updater(token=bottoken, request_kwargs={'read_timeout': 30, 'connect_timeout': 10})
 
 ALLGROUPS = {}
+ALLBROADCASTEES = {}
 GROUPS = {}
 GROUPADMINS = {}
 CONFADMINS= [420909210]
@@ -55,6 +56,11 @@ BinanceCN = -1
 
 INVITINGS = {}
 INVITERS = []
+
+#for forwarding
+CHANNELID=0
+MESSAGEID=0
+
 def loadJson(filename,default=[]):
     try:
         file=open(filename,"r")
@@ -80,6 +86,7 @@ def loadConfig(globalconfig,first=True):
     global DATAADMINS
     global GROUPS
     global ALLGROUPS
+    global ALLBROADCASTEES
     global GROUPADMINS
     global updater
     global CODEBONUS
@@ -101,6 +108,11 @@ def loadConfig(globalconfig,first=True):
         file.close()
     except:
         pass
+    # parse broadcast info
+    ALLBROADCASTEES={}
+    for broadcastee in globalconfig.items("broadcast"):
+        groupid = int(broadcastee[0])
+        ALLBROADCASTEES[groupid]=broadcastee[1]
     # parse groups info
     for groupinfo in globalconfig.items("groups"):
         groupid = int(groupinfo[0])
@@ -246,6 +258,15 @@ def unrestrict(chatid,userid):
 
 def callbackHandler(bot,update):
     global GROUPS
+    if "broadcastTo" in update.callback_query.data:
+        global CHANNELID,MESSAGEID
+        CHANNELID=update.callback_query.message.reply_to_message.chat_id
+        MESSAGEID=update.callback_query.message.reply_to_message.message_id
+        eval(update.callback_query.data)
+        update.callback_query.answer('Done')
+        update.callback_query.message.reply_text('Done')
+        update.callback_query.message.edit_reply_markup(text=update.callback_query.message.text)
+        return
     if "banInAllGroups" in update.callback_query.data:
         eval(update.callback_query.data)
         update.callback_query.answer('Done')
@@ -432,6 +453,22 @@ def dataadminHandler(bot,update):
         update.message.reply_text("{} is dataadmin now".format(targetuser.full_name))
     else:
         update.message.reply_text("was dataadmin before")
+def broadcasteeHandler(bot,update):
+    if not isAdmin(update,False,True,False):
+        update.message.reply_text("no admin")
+        return
+    global globalconfig
+    things = update.message.text.split(" ")
+    if len(things) != 2:
+        update.message.reply_text("/命令 语言")
+        return
+    groupid = update.message.chat_id
+    ALLBROADCASTEES[groupid]=things[1]+"-"+update.message.chat.title
+    globalconfig.set("broadcast",str(update.message.chat_id),things[1]+"-"+update.message.chat.title)
+    with open(sys.argv[1], 'wb') as configfile:
+        globalconfig.write(configfile)
+    update.message.reply_text("Added as "+things[1]+" Broadcastee")
+
 def superviseHandler(bot,update):
     if not isAdmin(update,False,True,False):
         return
@@ -536,10 +573,20 @@ def cleanHandler(bot,update):
         updater.is_idle = False
         os.exit()
 
+def broadcastTo(thelang):
+    for each in ALLBROADCASTEES:
+        lang=ALLBROADCASTEES[each].split("-")[0]
+        if lang == thelang:
+            print(each)
+            print(CHANNELID)
+            print(MESSAGEID)
+            updater.bot.forwardMessage(each,CHANNELID,MESSAGEID)
+    
 def forwardHandler(bot,update):
     global ALLGROUPS
     global GROUPADMINS
     fwduser = update.message.forward_from
+    '''
     suspectScam = False
     if globalconfig.has_section("scamkeys"):
         for scamkey in globalconfig.items("scamkeys"):
@@ -547,13 +594,38 @@ def forwardHandler(bot,update):
                 logger.warning("{}/{} Hit scam key {}".format(fwduser.username,fwduser.full_name,scamkey))
                 suspectScam = True
                 break
-
-    if update.message.chat.type == 'private' or suspectScam:
+    '''
+    #if  
+    if update.message.chat.type == 'private':# or suspectScam:
         #send in private 
+        # conf admin, broadcast
+        if not update.message.forward_from_chat is None and isAdmin(update,False,True,False):
+            Langs={}
+            for each in ALLBROADCASTEES:
+                lang=ALLBROADCASTEES[each].split("-")[0]
+                if not lang in Langs:
+                    Langs[lang]=[]
+                Langs[lang].append(each)
+            broadcast_markup=[]
+            for eachlang in Langs:
+                broadcast_markup.append(
+                    [
+                        InlineKeyboardButton('转发至'+eachlang+'的'+str(len(Langs[eachlang]))+'个群组',callback_data="broadcastTo('{}')".format(eachlang))
+                    ]
+                )
+            update.message.reply_text(
+                    "点击群发到对应的群组",
+                    reply_markup=InlineKeyboardMarkup(broadcast_markup),
+                    quote=True
+                )
+            return
+
+
+        #hint scam
         fwdisAdmin = False
         response=""
         for groupid in ALLGROUPS:
-            if fwduser.id in GROUPADMINS[groupid]:
+            if not fwduser is None and fwduser.id in GROUPADMINS[groupid]:
                 fwdisAdmin = True
                 response+="✅✅Admin in {}".format(ALLGROUPS[groupid])
                 response+="\n"
@@ -791,6 +863,7 @@ def main():
     dp.add_handler(CommandHandler( [ "idunbanall" ], idunbanallHandler))
     dp.add_handler(CommandHandler( [ "fwdbanall" ], fwdbanallHandler))
     dp.add_handler(CommandHandler( [ "supervise" ], superviseHandler))
+    dp.add_handler(CommandHandler( [ "broadcastee" ], broadcasteeHandler))
     dp.add_handler(CommandHandler( [ "dataadmin" ], dataadminHandler))
     dp.add_handler(CommandHandler( [ "reload" ], reloadHandler))
     dp.add_handler(CommandHandler( [ "clean" ], cleanHandler))

@@ -5,6 +5,7 @@ name = @usernameofyourbot
 [groups]
 -1000011001100 = puzzles/yourpuzzle.json
 -1000000000001 = anotherpuzzle.json
+[broadcast]
 [confadmins]
 [dataadmins]
 [blackfiletypes]
