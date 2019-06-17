@@ -72,3 +72,4 @@ Run the log output to stderr, possibly need redirect
 1. `/clearpoints` confadmin clear all points in the current group.
 1. `/clean` confadmin clear the hidden tasks, and after that please stop the Bot immediately.
 1. `/punish` group admin, confadmin or dataadmin could clear user's points to punish the user.
+1. `/broadcastee <Group Name>` call this command in group to add this group as broadcastee in certain group
