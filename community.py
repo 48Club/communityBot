@@ -156,6 +156,7 @@ def refreshAdmins(bot,job):
     logger.warning("admins refreshed")
 
 def reportInAllGroups(userid,fullname):
+    logger.warning("this is reportInAllGroups")
     global DATAADMINS
     try:
         file=open("_data/blacklist_ids.json","r")
@@ -178,14 +179,17 @@ def reportInAllGroups(userid,fullname):
             ]
         )
         
-
     for adminid in DATAADMINS:
-        updater.bot.sendMessage(
-            adminid,
-            "Someone reported [{}](tg://user?id={})".format(fullname,userid),
-            reply_markup=finalmarkup,
-            parse_mode=ParseMode.MARKDOWN
-        )
+        logger.warning(adminid)
+        try:
+            updater.bot.sendMessage(
+                adminid,
+                "Someone reported [{}](tg://user?id={})".format(fullname,userid),
+                reply_markup=finalmarkup,
+                parse_mode='Markdown'
+            )
+        except Exception as e:
+            logger.warning(e)
 
 def banInAllGroups(userid,op=True):
     thread = Thread(target = actualBanInAllGroups, args=[int(userid),op])
@@ -274,6 +278,7 @@ def callbackHandler(bot,update):
         update.callback_query.message.edit_reply_markup(text=update.callback_query.message.text)
         return
     if "reportInAllGroups" in update.callback_query.data:
+        logger.warning(update.callback_query.data)
         eval(update.callback_query.data)
         update.callback_query.answer('reported')
         update.callback_query.message.reply_text('reported')
@@ -711,7 +716,7 @@ def aboveHandler(bot,update):
     amount=int(things[1])
     res=""
     for tuple in pointscore.getAbove(update.message.chat_id,amount):
-        res += "\n💎{}\t[{}](tg://user?id={})".format(tuple[3],tuple[1],tuple[0])
+        res += "\n💎{}\t,[{}](tg://user?id={})".format(tuple[3],tuple[1],tuple[0])
     if len(res) > 0:
         update.message.reply_markdown(res,quote=False)
 def topHandler(bot,update):
@@ -724,7 +729,7 @@ def topHandler(bot,update):
         top=int(things[1])
     res=""
     for tuple in pointscore.getBoard(update.message.chat_id,top):
-        res += "\n💎{}\t[{}](tg://user?id={})".format(tuple[3],tuple[1],tuple[0])
+        res += "\n💎{}\t,[{}](tg://user?id={})".format(tuple[3],tuple[1],tuple[0])
     if len(res) > 0:
         update.message.reply_markdown(res,quote=False)
 def rankHandler(bot,update):
