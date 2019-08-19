@@ -11,6 +11,7 @@ import random
 import ConfigParser
 import thread
 import threading
+import requests
 from telegram import *
 from telegram.ext import *
 from threading import Thread
@@ -40,6 +41,7 @@ updater = Updater(token=bottoken, request_kwargs={'read_timeout': 30, 'connect_t
 
 ALLGROUPS = {}
 ALLBROADCASTEES = {}
+ALLINFOS = {}
 GROUPS = {}
 GROUPADMINS = {}
 CONFADMINS= [420909210]
@@ -146,7 +148,11 @@ def loadConfig(globalconfig,first=True):
             GROUPS[groupid]['kickjobs'] = oldgroup['kickjobs']
         ALLGROUPS[groupid]=GROUPS[groupid]['groupname']
         logger.warning("start watching %s",groupid)
-
+def refreshInfos(bot,job):
+    rawjson = requests.get('https://www.binance.com/info-api/v1/public/symbol/list').json()
+    for eachcoin in rawjson['result']['data']:
+        ALLINFOS[eachcoin['name']]=eachcoin
+    
 def refreshAdmins(bot,job):
     global ALLGROUPS
     global GROUPADMINS
@@ -530,7 +536,7 @@ def debugHandler(bot,update):
     update.message.reply_text(chatmember.status)
     update.message.reply_text(chatmember.until_date)
 def startHandler(bot,update):
-    
+    infoHandler(bot,update)
     #must in private mode
     if update.message.chat.type != 'private':
         return
@@ -586,7 +592,42 @@ def broadcastTo(thelang):
             print(CHANNELID)
             print(MESSAGEID)
             updater.bot.forwardMessage(each,CHANNELID,MESSAGEID)
-    
+def infoHandler(bot,update):    
+    coin = update.message.text.strip('?').upper()
+    if coin in ALLINFOS:
+        if ALLINFOS[coin]['dayChange']>0:
+            symbol="📈"
+        else:
+            symbol="📉"
+        info="*{}*({}){}\n*${}({}%)*\n*Rank* {}".format(
+            ALLINFOS[coin]['fullName'],
+            ALLINFOS[coin]['name'],
+            symbol,
+            ALLINFOS[coin]['price'],
+            round(ALLINFOS[coin]['dayChange'],2),
+            ALLINFOS[coin]['rank']
+        )
+        if 'marketCap' in ALLINFOS[coin]:
+            info += "\n*Market Cap* ${}".format(int(ALLINFOS[coin]['marketCap']),',')
+        if 'volumeGlobal' in ALLINFOS[coin]:
+            info += "\n*Volume* ${}".format(int(ALLINFOS[coin]['volumeGlobal']),',')
+        elif 'volume' in ALLINFOS[coin]:
+            info += "\n*Volume* ${}".format(int(ALLINFOS[coin]['volume']),',')
+
+        info += "\n---\n_Powered By_ [BNB48 Club®️](https://bnb48.club)"
+
+        '''
+        if 'tradeUrl' in ALLINFOS[coin]:
+            #info+= InlineKeyboardMarkup([[InlineKeyboardButton('Trade on Binance',url=ALLINFOS[coin]['tradeUrl']+'?ref=10150829')]])
+            info+='\n[Trade {} on Binance]({})'.format(ALLINFOS[coin]['name'],ALLINFOS[coin]['tradeUrl']+'?ref=10150829')
+        '''
+
+        update.message.reply_markdown(
+            text=info,
+            quote=False,
+            disable_web_page_preview=True
+        )
+        update.message.delete()
 def forwardHandler(bot,update):
     global ALLGROUPS
     global GROUPADMINS
@@ -650,6 +691,7 @@ def forwardHandler(bot,update):
                 update.message.reply_text("‼️ Be careful, this guy is not an admin",reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('Report!',callback_data="reportInAllGroups({},'{}')".format(fwduser.id,fwduser.full_name))]]))
 
 def textInGroupHandler(bot,update):
+    infoHandler(bot,update)
     enabled=[]
     for each in globalconfig.items("activity"):
         enabled.append(int(each[0]))
@@ -892,6 +934,7 @@ def main():
 
     # periodical refresh
     updater.job_queue.run_repeating(refreshAdmins,interval=3600,first=0)
+    updater.job_queue.run_repeating(refreshInfos,interval=100,first=0)
     updater.job_queue.run_daily(resetCodebonus,datetime.time())
 
 
