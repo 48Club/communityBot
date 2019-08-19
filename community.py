@@ -78,6 +78,8 @@ def saveJson(filename,content):
     file.flush()
     file.close()
 
+LOCALES=loadJson("_data/locales.json",{})
+
 def loadConfig(globalconfig,first=True):
     globalconfig.read(sys.argv[1])
 
@@ -148,10 +150,16 @@ def loadConfig(globalconfig,first=True):
             GROUPS[groupid]['kickjobs'] = oldgroup['kickjobs']
         ALLGROUPS[groupid]=GROUPS[groupid]['groupname']
         logger.warning("start watching %s",groupid)
+
+CNYUSD = 6.899
+
 def refreshInfos(bot,job):
     rawjson = requests.get('https://www.binance.com/info-api/v1/public/symbol/list').json()
     for eachcoin in rawjson['result']['data']:
         ALLINFOS[eachcoin['name']]=eachcoin
+    rawjson = requests.get('https://www.binance.com/exchange/public/cnyusd').json()
+    global CNYUSD
+    CNYUSD = rawjson['rate']
     
 def refreshAdmins(bot,job):
     global ALLGROUPS
@@ -592,42 +600,62 @@ def broadcastTo(thelang):
             print(CHANNELID)
             print(MESSAGEID)
             updater.bot.forwardMessage(each,CHANNELID,MESSAGEID)
+def localeHandler(bot,update):
+    if isAdmin(update):
+        things = update.message.text.split(" ")
+        LOCALES[str(update.message.chat_id)]=things[1]
+        saveJson("_data/locales.json",LOCALES)
+        update.message.reply_text(things[1]);
 def infoHandler(bot,update):    
-    coin = update.message.text.strip('?').upper()
+    if not '?' in update.message.text and not '？' in update.message.text:
+        return
+    coin = update.message.text.strip('?？').upper()
+    locales={"en":{"price":"Price","rank":"Rank","volume":"Volume(24H)","marketcap":"Market Cap","detail":"Detail of {}","trade":"Trade {} on Binance","lang":"en","currency":"$","rate":1},"zh":{"price":"现价","rank":"排名","marketcap":"市值","volume":"日成交量","detail":"{}更多资料","trade":"立即交易{}","lang":"cn","currency":"￥","rate":CNYUSD}}
+
+    if str(update.message.chat_id) in LOCALES and ('zh' in LOCALES[str(update.message.chat_id)] or 'cn' in LOCALES[str(update.message.chat_id)]) :
+        locale=locales['zh']
+    else:
+        locale=locales['en']
     if coin in ALLINFOS:
         if ALLINFOS[coin]['dayChange']>0:
             symbol="📈"
         else:
             symbol="📉"
-        info="*{}*({}){}\n*${}({}%)*\n*Rank* {}".format(
+        info="*{}*({})\n*{}*: {} {}  *(*{}{}%*)*\n*{}*: {}".format(
             ALLINFOS[coin]['fullName'],
             ALLINFOS[coin]['name'],
+            locale['price'],
+            locale['currency'],
+            ALLINFOS[coin]['price']*locale['rate'],
             symbol,
-            ALLINFOS[coin]['price'],
             round(ALLINFOS[coin]['dayChange'],2),
+            locale['rank'],
             ALLINFOS[coin]['rank']
         )
         if 'marketCap' in ALLINFOS[coin]:
-            info += "\n*Market Cap* ${}".format(int(ALLINFOS[coin]['marketCap']),',')
+            info += "\n*{}*: {}{}".format(locale['marketcap'],locale['currency'],format(int(ALLINFOS[coin]['marketCap']*locale['rate']),','))
         if 'volumeGlobal' in ALLINFOS[coin]:
-            info += "\n*Volume* ${}".format(int(ALLINFOS[coin]['volumeGlobal']),',')
+            info += "\n*{}*: {}{}".format(locale['volume'],locale['currency'],format(int(ALLINFOS[coin]['volumeGlobal']*locale['rate']),','))
         elif 'volume' in ALLINFOS[coin]:
-            info += "\n*Volume* ${}".format(int(ALLINFOS[coin]['volume']),',')
+            info += "\n*{}*: {}{}".format(locale['volume'],locale['currency'],format(int(ALLINFOS[coin]['volume']*locale['rate']),','))
 
-        info += "\n---\n_Powered By_ [BNB48 Club®️](https://bnb48.club)"
+        info += "\n---\n_Powered By_  [BNB48 Club®️](https://bnb48.club)"
 
-        '''
+        buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url="https://info.binance.com/{}/currencies/{}".format(locale['lang'],ALLINFOS[coin]['url']))]]
         if 'tradeUrl' in ALLINFOS[coin]:
-            #info+= InlineKeyboardMarkup([[InlineKeyboardButton('Trade on Binance',url=ALLINFOS[coin]['tradeUrl']+'?ref=10150829')]])
-            info+='\n[Trade {} on Binance]({})'.format(ALLINFOS[coin]['name'],ALLINFOS[coin]['tradeUrl']+'?ref=10150829')
-        '''
+            #buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl']+'?ref=10150829')])
+            buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl'])])
 
         update.message.reply_markdown(
             text=info,
             quote=False,
+            reply_markup=InlineKeyboardMarkup(buttons),
             disable_web_page_preview=True
         )
-        update.message.delete()
+        try:
+            update.message.delete()
+        except:
+            pass
 def forwardHandler(bot,update):
     global ALLGROUPS
     global GROUPADMINS
@@ -920,6 +948,7 @@ def main():
     dp.add_handler(CommandHandler( [ "mute" ], punishHandler))
     dp.add_handler(CommandHandler( [ "codebonus" ], codebonusHandler))
     dp.add_handler(CommandHandler( [ "decodebonus" ], decodebonusHandler))
+    dp.add_handler(CommandHandler( [ "locale" ], localeHandler))
 
     dp.add_handler(CallbackQueryHandler(callbackHandler))
     dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome))#'''处理新成员加入'''
