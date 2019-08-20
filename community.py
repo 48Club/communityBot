@@ -610,7 +610,7 @@ def infoHandler(bot,update):
     if not '?' in update.message.text and not '？' in update.message.text:
         return
     coin = update.message.text.strip('?？').upper()
-    locales={"en":{"price":"Price","rank":"Rank","volume":"Volume(24H)","marketcap":"Market Cap","detail":"Detail","trade":"Trade on Binance","lang":"en","currency":"$","rate":1},"zh":{"price":"现价","rank":"排名","marketcap":"市值","volume":"日成交额","detail":"更多资料","trade":"立即交易","lang":"cn","currency":"￥","rate":CNYUSD}}
+    locales={"en":{"price":"Price","rank":"Rank","volume":"Volume(24H)","marketcap":"Market Cap","detail":"More Detail of {}","trade":"Trade {} on Binance","lang":"en","currency":"$","rate":1},"zh":{"price":"现价","rank":"排名","marketcap":"市值","volume":"日成交额","detail":"更多资料","trade":"立即交易","lang":"cn","currency":"￥","rate":CNYUSD}}
 
     if str(update.message.chat_id) in LOCALES and ('zh' in LOCALES[str(update.message.chat_id)] or 'cn' in LOCALES[str(update.message.chat_id)]) :
         locale=locales['zh']
@@ -641,10 +641,10 @@ def infoHandler(bot,update):
 
         info += "\n---\n_Powered By_  [BNB48 Club®️](https://bnb48.club)"
 
-        buttons = [[InlineKeyboardButton(locale['detail'],url="https://info.binance.com/{}/currencies/{}".format(locale['lang'],ALLINFOS[coin]['url']))]]
+        buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url="https://info.binance.com/{}/currencies/{}".format(locale['lang'],ALLINFOS[coin]['url']))]]
         if 'tradeUrl' in ALLINFOS[coin]:
             #buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl']+'?ref=10150829')])
-            buttons.append([InlineKeyboardButton(locale['trade'],url=ALLINFOS[coin]['tradeUrl'])])
+            buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl'])])
 
         update.message.reply_markdown(
             text=info,
@@ -652,10 +652,12 @@ def infoHandler(bot,update):
             reply_markup=InlineKeyboardMarkup(buttons),
             disable_web_page_preview=True
         )
+        '''
         try:
             update.message.delete()
         except:
             pass
+        '''
 def forwardHandler(bot,update):
     global ALLGROUPS
     global GROUPADMINS
