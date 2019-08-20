@@ -157,6 +157,17 @@ def refreshInfos(bot,job):
     rawjson = requests.get('https://www.binance.com/info-api/v1/public/symbol/list').json()
     for eachcoin in rawjson['result']['data']:
         ALLINFOS[eachcoin['name']]=eachcoin
+    ALLINFOS['KOGE']={
+        "name":"KOGE",
+        "fullName":"BNB48 Club®️ Points",
+        "url":"https://bnb48.club",
+        "price":100,
+        "dayChange":10,
+        "marketCap":527465,
+        "tradeUrl":"https://www.binance.com/en/trade/KOGE_BNB",
+        "volume":30274,
+        "rank":ALLINFOS['BNB']['rank']+1000
+    }
     rawjson = requests.get('https://www.binance.com/exchange/public/cnyusd').json()
     global CNYUSD
     CNYUSD = rawjson['rate']
@@ -639,12 +650,15 @@ def infoHandler(bot,update):
         elif 'volume' in ALLINFOS[coin]:
             info += "\n*{}*: {}{}".format(locale['volume'],locale['currency'],format(int(ALLINFOS[coin]['volume']*locale['rate']),','))
 
-        info += "\n---\n_Powered By_  [BNB48 Club®️](https://bnb48.club)"
+        #info += "\n---\n_Powered By_  [BNB48 Club®️](https://bnb48.club)"
 
-        buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url="https://info.binance.com/{}/currencies/{}".format(locale['lang'],ALLINFOS[coin]['url']))]]
+        if "http" in ALLINFOS[coin]['url']:
+            buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url=ALLINFOS[coin]['url'])]]
+        else:
+            buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url="https://info.binance.com/{}/currencies/{}?__biz=MzU1NzgzMTc3MQ==&mid=2247483714&idx=1&sn=25f5c5e7a0ec0f57de4673471fdbcdee&chksm=fc2e8276cb590b60c5c86e8e3b8b8632cd35883b2e3d78edbfa7ba03517b02b5d086e9723471&mpshare=1&scene=24&srcid=&sharer_sharetime=1566270502716&sharer_shareid=b7184eccd821d314f8452af0d8a0fc4f&key=a5cc6adf06aaa96a8e95115df4b4ecd4f07d7019f64ded4278d7e80474341a8bd35bc92e05193dda9920f442d3e32b28530e027d74f008f84fb2196f5cc4979ed3eaf180cb8f82e6fa2040fa5a65a043&ascene=1&uin=NTk1NDcxMzYw&devicetype=Windows+10&version=62060844&lang=zh_CN&ref=10150829&pass_ticket=7Q5QI4yPfpdTwpMELIPm6d8iQCfkYhrhSyniRcl6VtByu42OhHUUhyyYDMo1vC1z'".format(locale['lang'],ALLINFOS[coin]['url']))]]
         if 'tradeUrl' in ALLINFOS[coin]:
             #buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl']+'?ref=10150829')])
-            buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl'])])
+            buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl']+'?__biz=MzU1NzgzMTc3MQ==&mid=2247483714&idx=1&sn=25f5c5e7a0ec0f57de4673471fdbcdee&chksm=fc2e8276cb590b60c5c86e8e3b8b8632cd35883b2e3d78edbfa7ba03517b02b5d086e9723471&mpshare=1&scene=24&srcid=&sharer_sharetime=1566270502716&sharer_shareid=b7184eccd821d314f8452af0d8a0fc4f&key=a5cc6adf06aaa96a8e95115df4b4ecd4f07d7019f64ded4278d7e80474341a8bd35bc92e05193dda9920f442d3e32b28530e027d74f008f84fb2196f5cc4979ed3eaf180cb8f82e6fa2040fa5a65a043&ascene=1&uin=NTk1NDcxMzYw&devicetype=Windows+10&version=62060844&lang=zh_CN&ref=10150829&pass_ticket=7Q5QI4yPfpdTwpMELIPm6d8iQCfkYhrhSyniRcl6VtByu42OhHUUhyyYDMo1vC1z')])
 
         update.message.reply_markdown(
             text=info,
