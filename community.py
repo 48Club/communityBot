@@ -655,10 +655,10 @@ def infoHandler(bot,update):
         if "http" in ALLINFOS[coin]['url']:
             buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url=ALLINFOS[coin]['url'])]]
         else:
-            buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url="https://info.binance.com/{}/currencies/{}".format(locale['lang'],ALLINFOS[coin]['url']))]]
+            buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url="https://info.binance.com/{}/currencies/{}?utm_source=tgbot".format(locale['lang'],ALLINFOS[coin]['url']))]]
         if 'tradeUrl' in ALLINFOS[coin]:
             #buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl']+'?ref=10150829')])
-            buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl'])])
+            buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl']+'?utm_source=tgbot')])
 
         update.message.reply_markdown(
             text=info,
