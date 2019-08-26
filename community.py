@@ -655,10 +655,10 @@ def infoHandler(bot,update):
         if "http" in ALLINFOS[coin]['url']:
             buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url=ALLINFOS[coin]['url'])]]
         else:
-            buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url="https://info.binance.com/{}/currencies/{}?__biz=MzU1NzgzMTc3MQ==&mid=2247483714&idx=1&sn=25f5c5e7a0ec0f57de4673471fdbcdee&chksm=fc2e8276cb590b60c5c86e8e3b8b8632cd35883b2e3d78edbfa7ba03517b02b5d086e9723471&mpshare=1&scene=24&srcid=&sharer_sharetime=1566270502716&sharer_shareid=b7184eccd821d314f8452af0d8a0fc4f&key=a5cc6adf06aaa96a8e95115df4b4ecd4f07d7019f64ded4278d7e80474341a8bd35bc92e05193dda9920f442d3e32b28530e027d74f008f84fb2196f5cc4979ed3eaf180cb8f82e6fa2040fa5a65a043&ascene=1&uin=NTk1NDcxMzYw&devicetype=Windows+10&version=62060844&lang=zh_CN&ref=10150829&pass_ticket=7Q5QI4yPfpdTwpMELIPm6d8iQCfkYhrhSyniRcl6VtByu42OhHUUhyyYDMo1vC1z'".format(locale['lang'],ALLINFOS[coin]['url']))]]
+            buttons = [[InlineKeyboardButton(locale['detail'].format(coin),url="https://info.binance.com/{}/currencies/{}".format(locale['lang'],ALLINFOS[coin]['url']))]]
         if 'tradeUrl' in ALLINFOS[coin]:
             #buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl']+'?ref=10150829')])
-            buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl']+'?__biz=MzU1NzgzMTc3MQ==&mid=2247483714&idx=1&sn=25f5c5e7a0ec0f57de4673471fdbcdee&chksm=fc2e8276cb590b60c5c86e8e3b8b8632cd35883b2e3d78edbfa7ba03517b02b5d086e9723471&mpshare=1&scene=24&srcid=&sharer_sharetime=1566270502716&sharer_shareid=b7184eccd821d314f8452af0d8a0fc4f&key=a5cc6adf06aaa96a8e95115df4b4ecd4f07d7019f64ded4278d7e80474341a8bd35bc92e05193dda9920f442d3e32b28530e027d74f008f84fb2196f5cc4979ed3eaf180cb8f82e6fa2040fa5a65a043&ascene=1&uin=NTk1NDcxMzYw&devicetype=Windows+10&version=62060844&lang=zh_CN&ref=10150829&pass_ticket=7Q5QI4yPfpdTwpMELIPm6d8iQCfkYhrhSyniRcl6VtByu42OhHUUhyyYDMo1vC1z')])
+            buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl'])])
 
         update.message.reply_markdown(
             text=info,
