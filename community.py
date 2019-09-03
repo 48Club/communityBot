@@ -555,7 +555,7 @@ def debugHandler(bot,update):
     update.message.reply_text(chatmember.status)
     update.message.reply_text(chatmember.until_date)
 def startHandler(bot,update):
-    infoHandler(bot,update)
+    #infoHandler(bot,update)
     #must in private mode
     if update.message.chat.type != 'private':
         return
@@ -719,23 +719,32 @@ def forwardHandler(bot,update):
                 fwdisAdmin = True
                 response+="✅✅Admin in {}".format(ALLGROUPS[groupid])
                 response+="\n"
+        if isAdmin(update,False,True,True):
+            thismarkup=InlineKeyboardMarkup([
+                        [InlineKeyboardButton('Ban in all groups!',callback_data="banInAllGroups({},True)".format(fwduser.id))],
+                        [InlineKeyboardButton('Unban in all groups!',callback_data="banInAllGroups({},False)".format(fwduser.id))]
+                    ])
+        elif not fwdisAdmin:
+            thismarkup=InlineKeyboardMarkup([
+                        [InlineKeyboardButton('Report!',callback_data="reportInAllGroups({},'{}')".format(fwduser.id,fwduser.full_name))]
+                    ])
+        else:
+            thismarkup = None
+
         if fwdisAdmin:
             if update.message.chat.type == 'private':
-                update.message.reply_text(response)
+                update.message.reply_text(response,reply_markup=thismarkup)
         else:
             if isAdmin(update,False,True,True):
                 update.message.reply_text(
                     "‼️ Be careful, this guy is not an admin",
-                    reply_markup=InlineKeyboardMarkup([
-                        [InlineKeyboardButton('Ban in all groups!',callback_data="banInAllGroups({},True)".format(fwduser.id))],
-                        [InlineKeyboardButton('Unban in all groups!',callback_data="banInAllGroups({},False)".format(fwduser.id))]
-                    ])
+                    reply_markup = thismarkup
                 )
             else:
-                update.message.reply_text("‼️ Be careful, this guy is not an admin",reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('Report!',callback_data="reportInAllGroups({},'{}')".format(fwduser.id,fwduser.full_name))]]))
+                update.message.reply_text("‼️ Be careful, this guy is not an admin",reply_markup=thismarkup)
 
 def textInGroupHandler(bot,update):
-    infoHandler(bot,update)
+    #infoHandler(bot,update)
     enabled=[]
     for each in globalconfig.items("activity"):
         enabled.append(int(each[0]))
