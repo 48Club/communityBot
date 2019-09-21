@@ -629,14 +629,16 @@ def infoHandler(bot,update):
     if not '?' in update.message.text and not '？' in update.message.text:
         return
     coin = update.message.text.strip('?？').upper()
-    if "stop" == coin and isAdmin(update,True,True,True):
+    if "STOPQUERY" == coin and isAdmin(update,True,True,True):
         infoBlackList.append(update.effective_chat.id)
         saveJson("_data/infoblacklist.json",infoBlackList)
         update.effective_message.reply_text("⛔️")
-    if "start" == coin and isAdmin(update,True,True,True):
+        return
+    if "STARTQUERY" == coin and isAdmin(update,True,True,True):
         infoBlackList.remove(update.effective_chat.id)
         saveJson("_data/infoblacklist.json",infoBlackList)
         update.effective_message.reply_text("✅")
+        return
     if update.effective_chat.id in infoBlackList:
         return
     locales={"en":{"price":"Price","rank":"Rank","volume":"Volume(24H)","marketcap":"Market Cap","detail":"More Details on {}","trade":"Trade {} on Binance","lang":"en","currency":"$","rate":1},"zh":{"price":"现价","rank":"排名","marketcap":"市值","volume":"日成交额","detail":"更多资料","trade":"立即交易","lang":"cn","currency":"￥","rate":CNYUSD}}
