@@ -79,6 +79,7 @@ def saveJson(filename,content):
     file.close()
 
 LOCALES=loadJson("_data/locales.json",{})
+infoBlackList = loadJson("_data/infoblacklist.json",[])
 
 def loadConfig(globalconfig,first=True):
     globalconfig.read(sys.argv[1])
@@ -555,7 +556,7 @@ def debugHandler(bot,update):
     update.message.reply_text(chatmember.status)
     update.message.reply_text(chatmember.until_date)
 def startHandler(bot,update):
-    #infoHandler(bot,update)
+    infoHandler(bot,update)
     #must in private mode
     if update.message.chat.type != 'private':
         return
@@ -621,6 +622,16 @@ def infoHandler(bot,update):
     if not '?' in update.message.text and not '？' in update.message.text:
         return
     coin = update.message.text.strip('?？').upper()
+    if "stop" == coin and isAdmin(update,True,True,True):
+        infoBlackList.append(update.effective_chat.id)
+        saveJson("_data/infoblacklist.json",infoBlackList)
+        update.effective_message.reply_text("⛔️")
+    if "start" == coin and isAdmin(update,True,True,True):
+        infoBlackList.remove(update.effective_chat.id)
+        saveJson("_data/infoblacklist.json",infoBlackList)
+        update.effective_message.reply_text("✅")
+    if update.effective_chat.id in infoBlackList.remove:
+        return
     locales={"en":{"price":"Price","rank":"Rank","volume":"Volume(24H)","marketcap":"Market Cap","detail":"More Details on {}","trade":"Trade {} on Binance","lang":"en","currency":"$","rate":1},"zh":{"price":"现价","rank":"排名","marketcap":"市值","volume":"日成交额","detail":"更多资料","trade":"立即交易","lang":"cn","currency":"￥","rate":CNYUSD}}
 
     if str(update.message.chat_id) in LOCALES and ('zh' in LOCALES[str(update.message.chat_id)] or 'cn' in LOCALES[str(update.message.chat_id)]) :
@@ -744,7 +755,7 @@ def forwardHandler(bot,update):
                 update.message.reply_text("‼️ Be careful, this guy is not an admin",reply_markup=thismarkup)
 
 def textInGroupHandler(bot,update):
-    #infoHandler(bot,update)
+    infoHandler(bot,update)
     enabled=[]
     for each in globalconfig.items("activity"):
         enabled.append(int(each[0]))
