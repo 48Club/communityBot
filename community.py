@@ -618,11 +618,11 @@ def localeHandler(bot,update):
         LOCALES[str(update.message.chat_id)]=things[1]
         saveJson("_data/locales.json",LOCALES)
         update.message.reply_text(things[1]);
-def delayMessageDelete(message):
-    thread = Thread(target = actualMessageDelete, args=[message])
+def delayMessageDelete(message,seconds=60):
+    thread = Thread(target = actualMessageDelete, args=[message,seconds])
     thread.start()
-def actualMessageDelete(message):
-    time.sleep(5)
+def actualMessageDelete(message,seconds):
+    time.sleep(seconds)
     message.delete()
 
 def infoHandler(bot,update):    
