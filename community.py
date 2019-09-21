@@ -618,6 +618,13 @@ def localeHandler(bot,update):
         LOCALES[str(update.message.chat_id)]=things[1]
         saveJson("_data/locales.json",LOCALES)
         update.message.reply_text(things[1]);
+def delayMessageDelete(message):
+    thread = Thread(target = actualMessageDelete, args=[message])
+    thread.start()
+def actualMessageDelete(message):
+    time.sleep(5)
+    message.delete()
+
 def infoHandler(bot,update):    
     if not '?' in update.message.text and not '？' in update.message.text:
         return
@@ -630,7 +637,7 @@ def infoHandler(bot,update):
         infoBlackList.remove(update.effective_chat.id)
         saveJson("_data/infoblacklist.json",infoBlackList)
         update.effective_message.reply_text("✅")
-    if update.effective_chat.id in infoBlackList.remove:
+    if update.effective_chat.id in infoBlackList:
         return
     locales={"en":{"price":"Price","rank":"Rank","volume":"Volume(24H)","marketcap":"Market Cap","detail":"More Details on {}","trade":"Trade {} on Binance","lang":"en","currency":"$","rate":1},"zh":{"price":"现价","rank":"排名","marketcap":"市值","volume":"日成交额","detail":"更多资料","trade":"立即交易","lang":"cn","currency":"￥","rate":CNYUSD}}
 
@@ -671,12 +678,12 @@ def infoHandler(bot,update):
             #buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl']+'?ref=10150829')])
             buttons.append([InlineKeyboardButton(locale['trade'].format(coin),url=ALLINFOS[coin]['tradeUrl']+'?utm_source=tgbot')])
 
-        update.message.reply_markdown(
+        delayMessageDelete(update.message.reply_markdown(
             text=info,
             quote=False,
             reply_markup=InlineKeyboardMarkup(buttons),
             disable_web_page_preview=True
-        )
+        ))
         '''
         try:
             update.message.delete()
