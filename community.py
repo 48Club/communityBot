@@ -367,12 +367,12 @@ def buildpuzzlemarkup(groupid,options):
     return InlineKeyboardMarkup(keys)
     
 def rmbanHandler(bot,update):
-    if isAdmin(update,True,True,True):
+    if isAdmin(update,False,True,True):
         ban(update.message.chat_id,update.message.reply_to_message.from_user.id)
         delayMessageDelete(update.message.reply_to_message,0)    
     delayMessageDelete(update.message,0)    
 def rmHandler(bot,update):
-    if isAdmin(update,True,True,True):
+    if isAdmin(update,False,True,True):
         delayMessageDelete(update.message.reply_to_message,0)    
     delayMessageDelete(update.message,0)    
 
