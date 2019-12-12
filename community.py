@@ -368,7 +368,7 @@ def buildpuzzlemarkup(groupid,options):
     
 def rmbanHandler(bot,update):
     if isAdmin(update,True,True,True):
-        ban(update.message.chat_id,update.message.from_user.id)
+        ban(update.message.chat_id,update.message.reply_to_message.from_user.id)
         delayMessageDelete(update.message.reply_to_message,0)    
     delayMessageDelete(update.message,0)    
 def rmHandler(bot,update):
