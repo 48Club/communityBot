@@ -686,6 +686,7 @@ def infoHandler(bot,update):
             reply_markup=InlineKeyboardMarkup(buttons),
             disable_web_page_preview=True
         ))
+        delayMessageDelete(update.message,10)
         '''
         try:
             update.message.delete()
