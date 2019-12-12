@@ -366,6 +366,13 @@ def buildpuzzlemarkup(groupid,options):
         keys.append([InlineKeyboardButton(each[1],callback_data="{}#{}".format(groupid,each[0]))])
     return InlineKeyboardMarkup(keys)
     
+def rmbanHandler(bot,update):
+    ban(update.message.chat_id,update.message.from_user.id)
+    delayMessageDelete(update.message.reply_to_message,0)    
+    delayMessageDelete(update.message,0)    
+def rmHandler(bot,update):
+    delayMessageDelete(update.message.reply_to_message,0)    
+    delayMessageDelete(update.message,0)    
 
 def replybanallHandler(bot,update):
     if not isAdmin(update,False,True,True):
@@ -623,7 +630,10 @@ def delayMessageDelete(message,seconds=60):
     thread.start()
 def actualMessageDelete(message,seconds):
     time.sleep(seconds)
-    message.delete()
+    try:
+        message.delete()
+    except:
+        pass
 
 def infoHandler(bot,update):    
     if not '?' in update.message.text and not '？' in update.message.text:
@@ -980,6 +990,8 @@ def main():
     dp.add_handler(CommandHandler( [ "debug" ], debugHandler))
     dp.add_handler(CommandHandler( [ "replybanall" ], replybanallHandler))
     dp.add_handler(CommandHandler( [ "batchbanall" ], batchbanallHandler))
+    dp.add_handler(CommandHandler( [ "rmban" ], rmbanHandler))
+    dp.add_handler(CommandHandler( [ "rm" ], rmHandler))
     dp.add_handler(CommandHandler( [ "idbanall" ], idbanallHandler))
     dp.add_handler(CommandHandler( [ "idunbanall" ], idunbanallHandler))
     dp.add_handler(CommandHandler( [ "fwdbanall" ], fwdbanallHandler))
