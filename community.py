@@ -260,8 +260,10 @@ def ban(chatid,userid):
     clearPoint(userid,chatid)
     updater.bot.kickChatMember(chatid,userid)
 def unban(chatid,userid):
-    clearPoint(userid,chatid)
     updater.bot.unbanChatMember(chatid,userid)
+def mute(chatid,userid):
+    clearPoint(userid,chatid)
+    updater.bot.restrictChatMember(chatid,userid,ChatPermissions(can_send_messages=False))
 def kick(chatid,userid):
     clearPoint(userid,chatid)
     updater.bot.kickChatMember(chatid,userid)
@@ -366,9 +368,9 @@ def buildpuzzlemarkup(groupid,options):
         keys.append([InlineKeyboardButton(each[1],callback_data="{}#{}".format(groupid,each[0]))])
     return InlineKeyboardMarkup(keys)
     
-def rmbanHandler(bot,update):
-    if isAdmin(update,False,True,True):
-        ban(update.message.chat_id,update.message.reply_to_message.from_user.id)
+def gunHandler(bot,update):
+    if isAdmin(update,True,True,True):
+        mute(update.message.chat_id,update.message.reply_to_message.from_user.id)
         delayMessageDelete(update.message.reply_to_message,0)    
     delayMessageDelete(update.message,0)    
 def rmHandler(bot,update):
@@ -992,7 +994,7 @@ def main():
     dp.add_handler(CommandHandler( [ "debug" ], debugHandler))
     dp.add_handler(CommandHandler( [ "replybanall" ], replybanallHandler))
     dp.add_handler(CommandHandler( [ "batchbanall" ], batchbanallHandler))
-    dp.add_handler(CommandHandler( [ "rmban" ], rmbanHandler))
+    dp.add_handler(CommandHandler( [ "gun" ], gunHandler))
     dp.add_handler(CommandHandler( [ "rm" ], rmHandler))
     dp.add_handler(CommandHandler( [ "idbanall" ], idbanallHandler))
     dp.add_handler(CommandHandler( [ "idunbanall" ], idunbanallHandler))
