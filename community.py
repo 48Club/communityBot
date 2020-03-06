@@ -81,7 +81,10 @@ def saveJson(filename,content):
 LOCALES=loadJson("_data/locales.json",{})
 infoBlackList = loadJson("_data/infoblacklist.json",[])
 
+SPAMKEYWORDS = loadJson("_data/spamkeywords.json",[])
+
 def loadConfig(globalconfig,first=True):
+    SPAMKEYWORDS = loadJson("_data/spamkeywords.json",[])
     globalconfig.read(sys.argv[1])
 
     global bottoken
@@ -797,18 +800,11 @@ def textInGroupHandler(bot,update):
             file.flush()
             file.close()
 
-    '''
-    try:
-        file=open("_data/blacklist_keywords.json","r")
-        WORDS=json.load(file)["words"]
-        file.close()
-    except IOError:
-    WORDS=["徽章","0.plus"]
-    for word in WORDS:
+    for word in SPAMKEYWORDS:
         if word in update.message.text:
-            restrict(update.message.chat_id,update.message.from_user.id,120)
+            banInAllGroups(update.effective_user.id,True)
+            logger.warning('%s|%s is banned from all groups because of spam',update.effective_user.id,update.effective_user.full_name)
             update.message.delete()
-    '''
 def clearPoint(uid,groupid):
     pointscore.clearUser(uid,groupid)
 def pointsHandler(bot,update):
