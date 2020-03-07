@@ -409,12 +409,18 @@ def idbanallHandler(bot,update):
 
 def spamHandler(bot,update):
     things=update.message.text.split(" ")
+    if len(things) == 1:
+        update.message.reply_text(things)
+        return
     del things[0]
     for eachword in things:
         if not eachword in SPAMKEYWORDS:
             SPAMKEYWORDS.append(eachword)
+            update.message.reply_text(eachword + " added")
+        else:
+            SPAMKEYWORDS.remove(eachword)
+            update.message.reply_text(eachword + " removed")
     saveJson("_data/spamkeywords.json",SPAMKEYWORDS)
-    update.message.reply_text("added")
 def reloadHandler(bot,update):
     global DATAADMINS
     global globalconfig
