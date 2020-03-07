@@ -410,7 +410,7 @@ def idbanallHandler(bot,update):
 def spamHandler(bot,update):
     things=update.message.text.split(" ")
     if len(things) == 1:
-        update.message.reply_text(SPAMKEYWORDS)
+        update.message.reply_text(str(SPAMKEYWORDS).encode('ascii').decode('unicode-escape'))
         return
     del things[0]
     for eachword in things:
