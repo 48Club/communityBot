@@ -407,6 +407,14 @@ def idbanallHandler(bot,update):
     banInAllGroups(things[1],True)
     update.message.reply_text("banned in all groups")
 
+def spamHandler(bot,update):
+    things=update.message.text.split(" ")
+    del things[0]
+    for eachword in things:
+        if not eachword in SPAMKEYWORDS:
+            SPAMKEYWORDS.append(eachword)
+    saveJson("_data/spamkeywords.json",SPAMKEYWORDS)
+    update.message.reply_text("added")
 def reloadHandler(bot,update):
     global DATAADMINS
     global globalconfig
@@ -999,6 +1007,7 @@ def main():
     dp.add_handler(CommandHandler( [ "broadcastee" ], broadcasteeHandler))
     dp.add_handler(CommandHandler( [ "dataadmin" ], dataadminHandler))
     dp.add_handler(CommandHandler( [ "reload" ], reloadHandler))
+    dp.add_handler(CommandHandler( [ "spam" ], spamHandler))
     dp.add_handler(CommandHandler( [ "clean" ], cleanHandler))
     dp.add_handler(CommandHandler( [ "clearpoints" ], clearpointsHandler))
     dp.add_handler(CommandHandler( [ "punish" ], punishHandler))
