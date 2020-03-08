@@ -47,7 +47,7 @@ GROUPADMINS = {}
 CONFADMINS= [420909210]
 DATAADMINS= [420909210]
 CODEBONUS={}
-
+GROUPSTAT = GroupStat(-1001136071376)
 pointscore= Points('_data/points.db')
 
 welcomelock = threading.Lock()
@@ -82,6 +82,7 @@ LOCALES=loadJson("_data/locales.json",{})
 infoBlackList = loadJson("_data/infoblacklist.json",[])
 
 SPAMKEYWORDS = loadJson("_data/spamkeywords.json",[])
+ACTIVITYENABLED=[]
 
 def loadConfig(globalconfig,first=True):
     SPAMKEYWORDS = loadJson("_data/spamkeywords.json",[])
@@ -154,6 +155,9 @@ def loadConfig(globalconfig,first=True):
             GROUPS[groupid]['kickjobs'] = oldgroup['kickjobs']
         ALLGROUPS[groupid]=GROUPS[groupid]['groupname']
         logger.warning("start watching %s",groupid)
+    for each in globalconfig.items("activity"):
+        if not int(each[0]) in ACTIVITYENABLED:
+            ACTIVITYENABLED.append(int(each[0]))
 
 CNYUSD = 6.899
 
@@ -179,6 +183,7 @@ def refreshInfos(bot,job):
 def refreshAdmins(bot,job):
     global ALLGROUPS
     global GROUPADMINS
+    GROUPSTAT.logMembersAcount(bot.getChatMembersCount(-1001136071376))
     logger.warning("start refreshing")
     for groupid in ALLGROUPS:
         GROUPADMINS[groupid]=getAdminsInThisGroup(groupid)
@@ -407,6 +412,10 @@ def idbanallHandler(bot,update):
     banInAllGroups(things[1],True)
     update.message.reply_text("banned in all groups")
 
+def reportHandler(bot,update):
+    things=update.message.text.split(" ")
+    span=int(things[1])
+    update.message.reply_text(GROUPSTAT.getReport(span))
 def spamHandler(bot,update):
     things=update.message.text.split(" ")
     if len(things) == 1:
@@ -445,6 +454,7 @@ def deactivityHandler(bot,update):
     with open(sys.argv[1], 'wb') as configfile:
         globalconfig.write(configfile)
         update.message.reply_text("activity removed")
+    ACTIVITYENABLED.remove(update.message.chat_id)
     
 def activityHandler(bot,update):
     #only confadmin
@@ -465,6 +475,7 @@ def activityHandler(bot,update):
     with open(sys.argv[1], 'wb') as configfile:
         globalconfig.write(configfile)
         update.message.reply_text("activity setted")
+    ACTIVITYENABLED.remove(append.message.chat_id)
     
 
 def decodebonusHandler(bot,update):
@@ -797,11 +808,9 @@ def forwardHandler(bot,update):
 
 def textInGroupHandler(bot,update):
     infoHandler(bot,update)
-    enabled=[]
-    for each in globalconfig.items("activity"):
-        enabled.append(int(each[0]))
-    if not update.message.chat_id in enabled:
+    if not update.message.chat_id in ACTIVITYENABLED:
         return
+    GROUPSTAT.logMessage(update.message.from_user.id)
     if not isAdmin(update,True,False,False):
         pointscore.mine(update.message.from_user,update.message.chat_id)
     if update.message.text in CODEBONUS:
@@ -889,6 +898,7 @@ def onleft(bot,update):
         INVITINGS = loadJson("_data/invitings.json",{})
         if str(update.message.left_chat_member.id) in INVITINGS:
             pointscore.changeBalance(INVITINGS[str(update.message.left_chat_member.id)],None,BinanceCN,-1)
+    GROUPSTAT.logQuit(update.message.left_chat_member.id,update.message.effective_user.id)
 def addHandler(bot,update):
     if not isAdmin(update,False,True,True):
         returnthings = update.message.text.split(" ")
@@ -910,6 +920,9 @@ def welcome(bot, update):
     
 
     for newUser in update.message.new_chat_members:
+
+        GROUPSTAT.logNewMember(newUser.id,update.effective_user.id)
+
         if newUser.id in BLACKLIST:
             ban(update.message.chat_id,newUser.id)
             logger.warning('%s|%s is banned from %s because of blacklist',newUser.id,newUser.full_name,update.message.chat.title)
@@ -1014,6 +1027,7 @@ def main():
     dp.add_handler(CommandHandler( [ "dataadmin" ], dataadminHandler))
     dp.add_handler(CommandHandler( [ "reload" ], reloadHandler))
     dp.add_handler(CommandHandler( [ "spam" ], spamHandler))
+    dp.add_handler(CommandHandler( [ "report" ], reportHandler))
     dp.add_handler(CommandHandler( [ "clean" ], cleanHandler))
     dp.add_handler(CommandHandler( [ "clearpoints" ], clearpointsHandler))
     dp.add_handler(CommandHandler( [ "punish" ], punishHandler))
