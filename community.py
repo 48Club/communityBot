@@ -16,6 +16,7 @@ from telegram import *
 from telegram.ext import *
 from threading import Thread
 from points import Points
+from groupstat import GroupStat
 
 reload(sys)  
 sys.setdefaultencoding('utf8')
