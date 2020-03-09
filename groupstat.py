@@ -51,7 +51,7 @@ class GroupStat:
         self._pre_access()
         self._data["stats"][self._data["date"]]["leftMembers"][str(uid)]=kickerid
         pass
-    def getReport(self,span=1):
+    def getReport(self,span=7):
         res="Date,MembersCount(Snapshot),NewMembers,LeftMembers,Speakers,Messages\n"
         keys =  self._data["stats"].keys()
         keys.sort(reverse=True)
