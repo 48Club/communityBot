@@ -53,7 +53,9 @@ class GroupStat:
         pass
     def getReport(self,span=1):
         res="Date,MembersCount(Snapshot),NewMembers,LeftMembers,Speakers,Messages\n"
-        for eachday in list(self._data["stats"])[-span:]:
+        keys =  self._data["stats"].keys()
+        keys.sort(reverse=True)
+        for eachday in keys[:span]:
             res += "{},{},{},{},{},{}\n".format(
                 eachday,
                 self._data["stats"][eachday]["membersCount"],
