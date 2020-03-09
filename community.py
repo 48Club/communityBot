@@ -184,6 +184,7 @@ def refreshAdmins(bot,job):
     global ALLGROUPS
     global GROUPADMINS
     GROUPSTAT.logMembersAcount(bot.getChatMembersCount(BinanceCN))
+    GROUPSTAT._save()
     logger.warning("start refreshing")
     for groupid in ALLGROUPS:
         GROUPADMINS[groupid]=getAdminsInThisGroup(groupid)
