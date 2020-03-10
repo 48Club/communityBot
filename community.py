@@ -418,7 +418,7 @@ def reportHandler(bot,update):
     if len(things)>1:
         span=int(things[1])
     else:
-        span=1
+        span=7
     update.message.reply_text(GROUPSTAT.getReport(span))
 def spamHandler(bot,update):
     things=update.message.text.split(" ")
