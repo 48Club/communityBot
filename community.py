@@ -421,6 +421,8 @@ def reportHandler(bot,update):
         span=7
     update.message.reply_text(GROUPSTAT.getReport(span))
 def spamHandler(bot,update):
+    if not isAdmin(update,True,True,True):
+        return
     things=update.message.text.split(" ")
     if len(things) == 1:
         update.message.reply_text(str(SPAMKEYWORDS).encode('ascii').decode('unicode-escape'))
