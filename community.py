@@ -414,6 +414,8 @@ def idbanallHandler(bot,update):
     update.message.reply_text("banned in all groups")
 
 def reportHandler(bot,update):
+    if not isAdmin(update,False,True,False):
+        return
     things=update.message.text.split(" ")
     if len(things)>1:
         span=int(things[1])
