@@ -10,22 +10,27 @@ class GroupStat:
     def __init__(self,groupid=None):
         self._defaultData={
             "date":str(date.today()),
-            "stats":{}
-        }
-        self._defaultDaily={
-            "messages":{},#uid:count
+            "stats":{},
             "membersCount":0,
+            "messages":{},#uid:count
             "newMembers":{},#newid:inviter
-            "leftMembers":{}#leftid:kickerid
         }
         self._id = groupid
         self._load()
     def _pre_access(self):
         nowday = str(date.today())
         if not self._data["date"] == nowday:
+            self._data["stats"][self._data["date"]] = {
+                "membersCount":self._data["membersCount"],
+                "newMembers":len(self._data["newMembers"]),
+                "speakers":len(self._data["messages"]),
+                "messages":sum(self._data["messages"].values())  
+            }
+            self._data["membersCount"]=0
+            self._data["newMembers"]={}
+            self._data["messages"]={}
             self._data["date"] = nowday
-        if not nowday in self._data["stats"]:
-            self._data["stats"][nowday]=self._defaultDaily.copy()
+
     def getId(self):
         return self._id
     def _getFile(self):
@@ -36,33 +41,32 @@ class GroupStat:
         self._data = loadJson(self._getFile(),self._defaultData.copy())
     def logMembersAcount(self,count):
         self._pre_access()
-        self._data["stats"][self._data["date"]]["membersCount"]=count
+        self._data["membersCount"]=count
     def logNewMember(self,uid,inviter=0):
         self._pre_access()
-        self._data["stats"][self._data["date"]]["newMembers"][str(uid)]=inviter
+        self._data["newMembers"][str(uid)]=inviter
         pass
     def logMessage(self,uid):
         self._pre_access()
-        if not str(uid) in self._data["stats"][self._data["date"]]["messages"]:
-            self._data["stats"][self._data["date"]]["messages"][str(uid)]=0
-        self._data["stats"][self._data["date"]]["messages"][str(uid)]+=1
+        if not str(uid) in self._data["messages"]:
+            self._data["messages"][str(uid)]=0
+        self._data["messages"][str(uid)]+=1
         pass
     def logQuit(self,uid,kickerid=0):
         self._pre_access()
-        self._data["stats"][self._data["date"]]["leftMembers"][str(uid)]=kickerid
         pass
     def getReport(self,span=7):
-        res="Date,MembersCount(Snapshot),NewMembers,LeftMembers,Speakers,Messages\n"
-        keys =  self._data["stats"].keys()
+        res="Date,MembersCount(Snapshot),NewMembers,Speakers,Messages\n"
+        keys = list(self._data["stats"].keys())
         keys.sort(reverse=True)
         for eachday in keys[:span]:
-            res += "{},{},{},{},{},{}\n".format(
+            res += "{},{},{},{},{}\n".format(
                 eachday,
                 self._data["stats"][eachday]["membersCount"],
-                len(self._data["stats"][eachday]["newMembers"]),
-                len(self._data["stats"][eachday]["leftMembers"]),
-                len(self._data["stats"][eachday]["messages"]),
-                sum(self._data["stats"][eachday]["messages"].values())
+                self._data["stats"][eachday]["newMembers"],
+                #len(self._data["stats"][eachday]["leftMembers"]),
+                self._data["stats"][eachday]["speakers"],
+                self._data["stats"][eachday]["messages"]
             )
         self._save()
         return res
