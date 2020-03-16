@@ -50,7 +50,9 @@ CONFADMINS= [420909210]
 DATAADMINS= [420909210]
 CODEBONUS={}
 BinanceCN = -1001136071376
+
 STATSLIST = loadJson("_data/statslist.json",[BinanceCN])
+GROUPSTATS = {}
 for eachgid in STATSLIST:
     GROUPSTATS[eachgid] = GroupStat(eachgid)
 
