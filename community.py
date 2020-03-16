@@ -427,7 +427,7 @@ def reportHandler(bot,update):
 
     things=update.message.text.split(" ")
     
-    if len(things)==0:
+    if len(things)==1:
         span = 7
     else:
         span=int(things[1])
