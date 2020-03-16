@@ -419,7 +419,7 @@ def idbanallHandler(bot,update):
 def reportHandler(bot,update):
     if not isAdmin(update,False,True,False):
         return
-    if update.effective_chat.chat_id == update.effective_user.id:
+    if update.effective_chat.id == update.effective_user.id:
         groupid = BinanceCN
     else:
         groupid = update.effective_chat.chat_id
