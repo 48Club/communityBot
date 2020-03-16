@@ -49,7 +49,16 @@ CONFADMINS= [420909210]
 DATAADMINS= [420909210]
 CODEBONUS={}
 BinanceCN = -1001136071376
-GROUPSTAT = GroupStat(BinanceCN)
+STATSLIST = loadJson("_data/statslist.json",[BinanceCN])
+for eachgid in STATSLIST:
+    GROUPSTATS[eachgid] = GroupStat(eachgid)
+
+def touchGroupStat(groupid):
+    if not groupid in GROUPSTATS:
+        STATSLIST.append(groupid)
+        saveJson("_data/statslist.json",STATSLIST)
+        GROUPSTATS[groupid]=GroupStat(groupid)
+
 pointscore= Points('_data/points.db')
 
 welcomelock = threading.Lock()
@@ -183,9 +192,15 @@ def refreshInfos(bot,job):
 def refreshAdmins(bot,job):
     global ALLGROUPS
     global GROUPADMINS
-    GROUPSTAT.logMembersAcount(bot.getChatMembersCount(BinanceCN))
-    GROUPSTAT._save()
     logger.warning("start refreshing")
+
+    for eachgid in GROUPSTATS:
+        try:
+            GROUPSTATS[eachgid].logMembersAcount(bot.getChatMembersCount(eachgid))
+        except:
+            pass
+        GROUPSTATS[eachgid]._save()
+
     for groupid in ALLGROUPS:
         GROUPADMINS[groupid]=getAdminsInThisGroup(groupid)
     logger.warning("admins refreshed")
@@ -416,12 +431,20 @@ def idbanallHandler(bot,update):
 def reportHandler(bot,update):
     if not isAdmin(update,False,True,False):
         return
-    things=update.message.text.split(" ")
-    if len(things)>1:
-        span=int(things[1])
+    if update.effective_chat.chat_id == update.effective_user.id:
+        groupid = BinanceCN
     else:
-        span=7
-    update.message.reply_text(GROUPSTAT.getReport(span))
+        groupid = update.effective_chat.chat_id
+        delayMessageDelete(update.message)
+
+    things=update.message.text.split(" ")
+    
+    if len(things)==0:
+        span = 7
+    else:
+        span=int(things[1])
+    touchGroupStat(groupid)
+    bot.sendMessage(update.effective_user.id,GROUPSTATS[groupid].getReport(span))
 def spamHandler(bot,update):
     if not isAdmin(update,False,True,False):
         return
@@ -818,8 +841,8 @@ def textInGroupHandler(bot,update):
     infoHandler(bot,update)
     if not update.message.chat_id in ACTIVITYENABLED:
         return
-    if update.message.chat_id == BinanceCN:
-        GROUPSTAT.logMessage(update.message.from_user.id)
+    if update.message.chat_id in GROUPSTATS:
+        GROUPSTATS[update.message.chat_id].logMessage(update.message.from_user.id)
     if not isAdmin(update,True,False,False):
         pointscore.mine(update.message.from_user,update.message.chat_id)
     if update.message.text in CODEBONUS:
@@ -903,11 +926,11 @@ def rankHandler(bot,update):
     update.message.reply_markdown(res,quote=True)
 
 def onleft(bot,update):
-    if update.message.chat_id == BinanceCN:
+    if update.message.chat_id in GROUPSTATS:
         INVITINGS = loadJson("_data/invitings.json",{})
         if str(update.message.left_chat_member.id) in INVITINGS:
             pointscore.changeBalance(INVITINGS[str(update.message.left_chat_member.id)],None,BinanceCN,-1)
-        GROUPSTAT.logQuit(update.message.left_chat_member.id,update.message.effective_user.id)
+        GROUPSTATS[update.message.chat_id].logQuit(update.message.left_chat_member.id,update.message.effective_user.id)
 def addHandler(bot,update):
     if not isAdmin(update,False,True,True):
         returnthings = update.message.text.split(" ")
@@ -931,8 +954,8 @@ def welcome(bot, update):
     
 
     for newUser in update.message.new_chat_members:
-        if update.message.chat_id == BinanceCN:
-            GROUPSTAT.logNewMember(newUser.id,update.effective_user.id)
+        if update.message.chat_id in GROUPSTATS:
+            GROUPSTATS[update.message.chat_id].logNewMember(newUser.id,update.effective_user.id)
 
         '''
         if newUser.id in BLACKLIST:
