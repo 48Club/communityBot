@@ -17,6 +17,7 @@ from telegram.ext import *
 from threading import Thread
 from points import Points
 from groupstat import GroupStat
+from jsonfile import *
 
 reload(sys)  
 sys.setdefaultencoding('utf8')
@@ -71,21 +72,6 @@ INVITERS = []
 #for forwarding
 CHANNELID=0
 MESSAGEID=0
-
-def loadJson(filename,default=[]):
-    try:
-        file=open(filename,"r")
-        lastData = json.load(file)
-        file.close()
-        return lastData
-    except:
-        return default
-
-def saveJson(filename,content):
-    file = codecs.open(filename,"w","utf-8")
-    file.write(json.dumps(content))
-    file.flush()
-    file.close()
 
 LOCALES=loadJson("_data/locales.json",{})
 infoBlackList = loadJson("_data/infoblacklist.json",[])
