@@ -422,7 +422,7 @@ def reportHandler(bot,update):
     if update.effective_chat.id == update.effective_user.id:
         groupid = BinanceCN
     else:
-        groupid = update.effective_chat.chat_id
+        groupid = update.effective_chat.id
         delayMessageDelete(update.message)
 
     things=update.message.text.split(" ")
