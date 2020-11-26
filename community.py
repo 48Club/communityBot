@@ -669,7 +669,10 @@ def broadcastTo(thelang):
             print(each)
             print(CHANNELID)
             print(MESSAGEID)
-            updater.bot.forwardMessage(each,CHANNELID,MESSAGEID)
+            try:
+                updater.bot.forwardMessage(each,CHANNELID,MESSAGEID)
+            except:
+                pass
 def localeHandler(bot,update):
     if isAdmin(update):
         things = update.message.text.split(" ")
