@@ -1,0 +1,4 @@
+[Group]
+OnUserJoined = "Welcome [{{.User}}](tg://user?id={{.ID}}) to 48Club big family"
+NotBindWallet = "[{{.User}}](tg://user?id={{.ID}}), please bind your wallet address first"
+NotEnoughPoint = "[{{.User}}](tg://user?id={{.ID}}), sorry, you don't have enough points to speak"
