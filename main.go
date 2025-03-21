@@ -64,8 +64,9 @@ func main() {
 		}
 		c := bot.NewContext(upd)
 		m := upd.Message
-		if m.UsersJoined == nil && m.UserJoined == nil && m.UserLeft == nil { // not join or leave group
-			if sp := soul.CheckSoulPoint(c); sp <= 0 { // check soul point
+		if m.Chat != nil && m.Chat.ID < 0 && m.UsersJoined == nil && m.UserJoined == nil && m.UserLeft == nil { // not join or leave group
+			user := m.Sender
+			if sp := soul.CheckSoulPoint(user); sp <= 0 { // check soul point
 				_ = c.Delete()
 				var msg string
 				if sp == -1 { // not bind account
@@ -74,7 +75,20 @@ func main() {
 				} else if sp == 0 { // not enough point
 					msg = MustLocalize("Group.NotEnoughPoint", getUserWhitID(c.Message().Sender), c.Sender().LanguageCode)
 				}
-				bot.Send(c.Chat(), msg, tele.ModeMarkdownV2)
+
+				_ = bot.Restrict(c.Chat(), &tele.ChatMember{
+					User:            user,
+					Rights:          tele.Rights{CanSendMessages: false},
+					RestrictedUntil: time.Now().Unix() + 3*60,
+				}) // restrict user send message 3 minutes
+
+				alertMsg, err := bot.Send(c.Chat(), msg, tele.ModeMarkdownV2)
+				if err == nil {
+					go func(m *tele.Message) {
+						time.Sleep(3 * time.Minute)
+						_ = bot.Delete(m)
+					}(alertMsg)
+				}
 				continue
 			}
 		}
