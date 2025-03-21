@@ -1,4 +1,7 @@
+[ModeMarkdownV2]
+Link2User = "[{{.User}}](tg://user?id={{.ID}})"
+
 [Group]
-OnUserJoined = "欢迎 [{{.User}}](tg://user?id={{.ID}}) 加入 48Club 大家庭"
-NotBindWallet = "[{{.User}}](tg://user?id={{.ID}}), 请先绑定钱包地址"
-NotEnoughPoint = "[{{.User}}](tg://user?id={{.ID}}), 抱歉，您的积分不足, 无法发言"
+OnUserJoined = "欢迎 {{.Users}} 加入 48Club 大家庭"
+NotBindWallet = "{{.User}}, 请先绑定钱包地址"
+NotEnoughPoint = "{{.User}}, 抱歉，您的积分不足, 无法发言"

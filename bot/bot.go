@@ -1,17 +1,20 @@
 package bot
 
 import (
+	"strings"
 	"time"
 
 	"github.com/48Club/communityBot/i18n"
 	"github.com/48Club/communityBot/soul"
 	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/gin-gonic/gin"
 	tele "gopkg.in/telebot.v4"
 )
 
 var (
 	MustLocalize = i18n.Bundle.Localize
 	groupIDs     mapset.Set[int64]
+	MDv2         = tele.ModeMarkdownV2
 )
 
 func init() {
@@ -24,16 +27,36 @@ func AddHandler(bot *tele.Bot) {
 	// new user join group
 	bot.Handle(tele.OnUserJoined, func(c tele.Context) error {
 		_ = c.Delete()
+		var userLinks map[string][]string = make(map[string][]string)
+
 		for _, user := range c.Message().UsersJoined {
-			replyMsg, err := bot.Send(c.Chat(), MustLocalize("Group.OnUserJoined", getUserWhitID(&user), user.LanguageCode), tele.ModeMarkdownV2)
+			lang := user.LanguageCode
+			userLink := getUserLinkString(&user)
+			if userLinks[lang] == nil {
+				userLinks[lang] = []string{userLink}
+			} else {
+				userLinks[lang] = append(userLinks[lang], userLink)
+			}
+		}
+
+		sendWelcomeMsg := func(lang string, users []string) {
+			if len(users) == 0 {
+				return
+			}
+			msg := strings.Join(users, ", ")
+			replyMsg, err := bot.Send(c.Chat(), MustLocalize("Group.OnUserJoined", gin.H{"Users": msg}, lang), MDv2)
 			if err == nil {
 				go func(m *tele.Message) {
 					time.Sleep(3 * time.Minute)
 					_ = bot.Delete(m)
 				}(replyMsg)
 			}
-
 		}
+
+		for lang, users := range userLinks {
+			sendWelcomeMsg(lang, users)
+		}
+
 		return nil
 	})
 
@@ -63,9 +86,9 @@ func Start(bot *tele.Bot) {
 				var msg string
 				if sp == -1 { // not bind account
 					// TODO: add bind account button
-					msg = MustLocalize("Group.NotBindWallet", getUserWhitID(c.Message().Sender), c.Sender().LanguageCode)
+					msg = MustLocalize("Group.NotBindWallet", getUserLinkStruct(c.Message().Sender), c.Sender().LanguageCode)
 				} else if sp == 0 { // not enough point
-					msg = MustLocalize("Group.NotEnoughPoint", getUserWhitID(c.Message().Sender), c.Sender().LanguageCode)
+					msg = MustLocalize("Group.NotEnoughPoint", getUserLinkStruct(c.Message().Sender), c.Sender().LanguageCode)
 				}
 
 				_ = bot.Restrict(c.Chat(), &tele.ChatMember{
@@ -74,7 +97,7 @@ func Start(bot *tele.Bot) {
 					RestrictedUntil: time.Now().Unix() + 3*60,
 				}) // restrict user send message 3 minutes
 
-				alertMsg, err := bot.Send(c.Chat(), msg, tele.ModeMarkdownV2)
+				alertMsg, err := bot.Send(c.Chat(), msg, MDv2)
 				if err == nil {
 					go func(m *tele.Message) {
 						time.Sleep(3 * time.Minute)
