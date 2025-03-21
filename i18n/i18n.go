@@ -16,8 +16,8 @@ var Bundle *I18nBundle
 func init() {
 	bundle := i18n.NewBundle(language.SimplifiedChinese)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	bundle.MustLoadMessageFile("i18n.zh-Hans.toml")
-	bundle.MustLoadMessageFile("i18n.en.toml")
+	bundle.MustLoadMessageFile("i18n/zh-Hans.toml")
+	bundle.MustLoadMessageFile("i18n/en.toml")
 
 	Bundle = &I18nBundle{bundle}
 }
