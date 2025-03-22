@@ -234,11 +234,11 @@ func Start(bot *tele.Bot) {
 		m := c.Message()
 		sikpCheck := false
 		if m != nil {
-			if m.Chat != nil && m.Chat.ID < 0 {
-				if !groupIDs.Contains(m.Chat.ID) {
+			if m.Chat != nil {
+				sikpCheck = m.Sender.ID == 777000 || m.Chat.ID > 0 || m.UserLeft != nil || len(m.UsersJoined) > 0 || m.UserJoined != nil
+				if m.Chat.ID < 0 && !groupIDs.Contains(m.Chat.ID) {
 					continue
 				}
-				sikpCheck = m.Sender.ID == 777000 || m.Chat.ID > 0 || m.UserLeft != nil || len(m.UsersJoined) > 0 || m.UserJoined != nil
 			}
 
 		}
