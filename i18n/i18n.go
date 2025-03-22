@@ -14,10 +14,10 @@ type I18nBundle struct {
 var Bundle *I18nBundle
 
 func init() {
-	bundle := i18n.NewBundle(language.SimplifiedChinese)
+	bundle := i18n.NewBundle(language.English)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	bundle.MustLoadMessageFile("i18n/zh-Hans.toml")
 	bundle.MustLoadMessageFile("i18n/en.toml")
+	bundle.MustLoadMessageFile("i18n/zh-Hans.toml")
 
 	Bundle = &I18nBundle{bundle}
 }

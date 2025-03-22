@@ -26,6 +26,7 @@ func init() {
 	groupIDs = mapset.NewSet[int64](
 		-1001345282090, // @cn_48club
 		-1001846893990, // test chat group
+		-1001695915153, // Ian's Fans Club
 	)
 }
 
@@ -46,7 +47,6 @@ func setCommands(bot *tele.Bot) {
 }
 
 func onUserJoined(c tele.Context) error {
-	c.Set("skip", true)
 	_ = c.Delete()
 	var userLinks map[string][]string = make(map[string][]string)
 
@@ -126,15 +126,15 @@ func bind(c tele.Context) error {
 	if user.Address != nil {
 		return c.Reply(MustLocalize("Chat.HasBindWallet", gin.H{"Wallet": user.Address}, lang), append([]any{MDv2}, &tele.ReplyMarkup{InlineKeyboard: [][]tele.InlineButton{
 			{
-				{Text: MustLocalize("Chat.Click2UnBindWallet", nil), URL: fmt.Sprintf("https://t.me/%s?start=unbind", botUsername)},
+				{Text: MustLocalize("Chat.Click2UnBindWallet", nil, lang), URL: fmt.Sprintf("https://t.me/%s?start=unbind", botUsername)},
 			},
 		}})...)
 	}
 
-	return c.Reply(MustLocalize("Chat.BindWallet", nil), append([]any{MDv2}, &tele.ReplyMarkup{InlineKeyboard: [][]tele.InlineButton{
+	return c.Reply(MustLocalize("Chat.BindWallet", nil, lang), append([]any{MDv2}, &tele.ReplyMarkup{InlineKeyboard: [][]tele.InlineButton{
 		{
-			// {Text: MustLocalize("Chat.BindWalletTypeA", nil), Data: "@todo"},
-			{Text: MustLocalize("Chat.BindWalletTypeB", nil), URL: fmt.Sprintf("https://t.me/%s?start=bind-b", botUsername)},
+			// {Text: MustLocalize("Chat.BindWalletTypeA", nil, lang), Data: "@todo"},
+			{Text: MustLocalize("Chat.BindWalletTypeB", nil, lang), URL: fmt.Sprintf("https://t.me/%s?start=bind-b", botUsername)},
 		},
 	}})...)
 }
@@ -154,7 +154,7 @@ func unBind(c tele.Context) error {
 	if err := sql.Update(&user); err != nil {
 		return c.Reply(MustLocalize("Chat.Error", gin.H{"Error": err.Error()}, lang))
 	}
-	return c.Reply(MustLocalize("Chat.UnBindWalletSuccess", nil), MDv2)
+	return c.Reply(MustLocalize("Chat.UnBindWalletSuccess", nil, lang), MDv2)
 }
 
 func start(c tele.Context) error {
@@ -186,7 +186,7 @@ func start(c tele.Context) error {
 		return unBind(c)
 	}
 
-	return c.Reply(MustLocalize("Chat.Start", nil), MDv2)
+	return c.Reply(MustLocalize("Chat.Start", nil, lang), MDv2)
 }
 
 func NewBot() *tele.Bot {
@@ -211,7 +211,6 @@ func AddHandler(bot *tele.Bot) {
 
 	// user leave group
 	bot.Handle(tele.OnUserLeft, func(c tele.Context) error {
-		c.Set("skip", true)
 		return c.Delete()
 	})
 	// user send message
@@ -231,35 +230,29 @@ func Start(bot *tele.Bot) {
 
 	for {
 		upd := <-bot.Updates
-		is48ClubChat := false
-		if upd.Message != nil && upd.Message.Chat != nil {
-			chatID := upd.Message.Chat.ID
-			if chatID < 0 {
-				if is48ClubChat = groupIDs.Contains(chatID); !is48ClubChat {
-					// check chatID, if not in groupIDs, skip
+		c := bot.NewContext(upd)
+		m := c.Message()
+		sikpCheck := false
+		if m != nil {
+			if m.Chat != nil && m.Chat.ID < 0 {
+				if !groupIDs.Contains(m.Chat.ID) {
 					continue
 				}
+				sikpCheck = m.Sender.ID == 777000 || m.Chat.ID > 0 || m.UserLeft != nil || len(m.UsersJoined) > 0 || m.UserJoined != nil
 			}
 
 		}
-		c := bot.NewContext(upd)
 
 		bot.ProcessContext(c)
-
-		if !is48ClubChat {
+		if sikpCheck {
 			continue
 		}
+
 		go allMsgCheck(c)
 	}
 }
 
 func allMsgCheck(c tele.Context) {
-	i := c.Get("skip")
-	b, ok := i.(bool)
-	if ok && b {
-		return
-	}
-
 	user := c.Sender()
 	userSp := soul.CheckSoulPoint(user)
 	if userSp == soul.SP_VALID { // check soul point
@@ -269,17 +262,18 @@ func allMsgCheck(c tele.Context) {
 	_ = c.Delete()
 	var msg string
 	opt := []any{MDv2}
+	lang := c.Sender().LanguageCode
 
 	switch userSp {
 	case soul.SP_NOT_BIND: // not bind account
-		msg = MustLocalize("Group.NotBindWallet", getUserLinkStruct(c.Message().Sender), c.Sender().LanguageCode)
+		msg = MustLocalize("Group.NotBindWallet", getUserLinkStruct(c.Message().Sender), lang)
 		opt = append(opt, &tele.ReplyMarkup{InlineKeyboard: [][]tele.InlineButton{
 			{
-				{Text: MustLocalize("Group.BindWallet", nil), URL: fmt.Sprintf("https://t.me/%s?start=bind", botUsername)},
+				{Text: MustLocalize("Group.BindWallet", nil, lang), URL: fmt.Sprintf("https://t.me/%s?start=bind", botUsername)},
 			},
 		}})
 	case soul.SP_NOT_ENOUGH: // not enough point
-		msg = MustLocalize("Group.NotEnoughPoint", getUserLinkStruct(c.Message().Sender), c.Sender().LanguageCode)
+		msg = MustLocalize("Group.NotEnoughPoint", getUserLinkStruct(c.Message().Sender), lang)
 	}
 
 	// restrict user send message 3 minutes
