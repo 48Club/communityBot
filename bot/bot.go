@@ -254,6 +254,13 @@ func Start(bot *tele.Bot) {
 
 func allMsgCheck(c tele.Context) {
 	user := c.Sender()
+	if user == nil {
+		return
+	}
+	if c.Message() == nil {
+		return
+	}
+
 	userSp := soul.CheckSoulPoint(user)
 	if userSp == soul.SP_VALID { // check soul point
 		return
